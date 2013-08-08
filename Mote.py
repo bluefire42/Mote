@@ -12,7 +12,8 @@ from collections import deque
 MOTES = {}
 
 def main():
-    with open('servers.json') as f:
+    print(sublime.packages_path())
+    with open(os.path.join(sublime.packages_path(),'Mote','servers.json')) as f:
         MOTES = json.load(f)
     for server in MOTES:
         MOTES[server]['thread'] = MoteSearchThread(server,
@@ -97,11 +98,11 @@ class MoteViewCommand(sublime_plugin.WindowCommand):
 class MoteStatusCommand(sublime_plugin.WindowCommand):
     def run(self):
         for server in MOTES:
-            print MOTES[server]
-            print MOTES[server]['thread'].is_alive()
-            print MOTES[server]['thread'].name
-            print MOTES[server]['thread'].sftp
-            print MOTES[server]['thread'].results
+            print(MOTES[server])
+            print(MOTES[server]['thread'].is_alive())
+            print(MOTES[server]['thread'].name)
+            print(MOTES[server]['thread'].sftp)
+            print(MOTES[server]['thread'].results)
 
 class MoteDisconnectCommand(sublime_plugin.WindowCommand):
     def run(self, server=''):
@@ -156,7 +157,7 @@ class MoteSearchThread(threading.Thread):
     def connect(self):
         if not self.sftp:
             self.sftp = psftp(self.connection_string)
-            self.sftp.next()
+            next(self.sftp)
         return self
 
     def disconnect(self):
@@ -195,7 +196,7 @@ class MoteSearchThread(threading.Thread):
             command, path = self.get_front_command()
             self.results_lock.release()
 
-            print command, path, show_panel
+            print(command, path, show_panel)
 
             if command == 'ls':
                 if show_panel == True:
@@ -213,7 +214,7 @@ class MoteSearchThread(threading.Thread):
                 self.upload(path)
                 sublime.set_timeout(lambda:sublime.status_message('Finished uploading %s' % path),0)
             elif command == 'cd':
-                self.sftp.send('cd "%s"' % (path) )
+                self.sftp.send(u'cd "%s"' % (path))
                 self.add_command('ls','', show_panel)
             elif command == 'exit':
                 break
@@ -303,15 +304,15 @@ def cleanpath(*args):
 def psftp(connection_string):
     command = ''
     exe = [os.path.join(sublime.packages_path(),'Mote','psftp.exe')] + connection_string
-    print exe
+    print(exe)
     p = subprocess.Popen(exe, shell=True, bufsize=1024, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
     while True:
         try:
             command = (yield untilprompt(p,command))
         except Exception as e:
-            print e
+            print(e)
             return
-        #print command
+        #print(command)
         if command == 'exit':
             untilprompt(p,'exit')
             return
@@ -319,16 +320,17 @@ def psftp(connection_string):
 
 def untilprompt(proc, strinput = None):
     if strinput:
-        proc.stdin.write(strinput+'\n')
+        proc.stdin.write((strinput.encode('utf-8')+b'\n'))
         proc.stdin.flush()
     buff = ''
     while proc.poll() == None:
 
-        output = proc.stdout.read(1)
+        output = proc.stdout.read(1).decode('utf-8')
         buff += output
 
         if buff[-7:-1] == 'psftp>':
             break
+
     return buff
 
 MOTES = main()
