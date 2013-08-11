@@ -338,6 +338,4 @@ def untilprompt(proc, strinput = None):
             break
 
     return buff
-
-if (sublime.version() < 3000)
-    main()
+    
