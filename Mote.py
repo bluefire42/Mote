@@ -11,9 +11,6 @@ from collections import deque
 
 MOTES = {}
 
-def main():
-    plugin_loaded()
-
 def plugin_loaded():
     global MOTES
     print("Plugin loaded:")
@@ -338,4 +335,3 @@ def untilprompt(proc, strinput = None):
             break
 
     return buff
-    
