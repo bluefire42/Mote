@@ -12,6 +12,11 @@ from collections import deque
 MOTES = {}
 
 def main():
+    plugin_loaded()
+
+def plugin_loaded():
+    global MOTES
+    print("Plugin loaded:")
     print(sublime.packages_path())
     with open(os.path.join(sublime.packages_path(),'Mote','servers.json')) as f:
         MOTES = json.load(f)
@@ -29,11 +34,9 @@ def main():
     if os.path.exists(root):
         shutil.rmtree(root)
 
-    return MOTES
-
 def show_commands(window):
     commands = []
-
+    global MOTES
     for server in MOTES:
         if MOTES[server]['thread'].sftp == None:
             commands.append({
@@ -88,6 +91,7 @@ class MoteCommand(sublime_plugin.WindowCommand):
 # Internal Commands
 class MoteViewCommand(sublime_plugin.WindowCommand):
     def run(self, server):
+        global MOTES
         MOTES[server]['thread'].window = self.window
         if MOTES[server]['thread'].sftp == None:
             MOTES[server]['thread'].start()
@@ -106,6 +110,7 @@ class MoteStatusCommand(sublime_plugin.WindowCommand):
 
 class MoteDisconnectCommand(sublime_plugin.WindowCommand):
     def run(self, server=''):
+        global MOTES
         MOTES[server]['thread'].add_command('exit','')
 
 
@@ -113,6 +118,7 @@ class MoteDisconnectCommand(sublime_plugin.WindowCommand):
 
 class MoteUploadOnSave(sublime_plugin.EventListener):
     def on_post_save(self, view):
+        global MOTES
         root = os.path.join(sublime.packages_path(),'Mote','temp')
         relpath = os.path.relpath(view.file_name(),root)
         #print relpath
@@ -333,4 +339,5 @@ def untilprompt(proc, strinput = None):
 
     return buff
 
-MOTES = main()
+if (sublime.version() < 3000)
+    main()
